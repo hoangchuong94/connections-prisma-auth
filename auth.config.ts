@@ -1,12 +1,11 @@
-import NextAuth from "next-auth";
-import { UserRole } from "@/app/generated/prisma";
-import { NextResponse } from "next/server";
+import { PrismaAdapter } from "@auth/prisma-adapter";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import Credentials from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
 import { comparePassword } from "./actions/hash-password";
+import { UserRole } from "@/app/generated/prisma";
+import { NextResponse } from "next/server";
 import {
   DEFAULT_ADMIN_SIGN_IN_REDIRECT,
   apiAuthPrefix,
@@ -15,34 +14,27 @@ import {
 } from "@/routes";
 import type { NextAuthConfig } from "next-auth";
 
-export default {
+const authConfig: NextAuthConfig = {
+  adapter: PrismaAdapter(prisma),
   providers: [
     GitHub,
     Google,
     Credentials({
       async authorize(credentials) {
-        try {
-          if (!credentials.email || !credentials.password) {
-            return null;
-          }
-          const user = await prisma.user.findUnique({
-            where: {
-              email: String(credentials.email),
-            },
-          });
-          if (
-            !user ||
-            !(await comparePassword(
-              String(credentials.password),
-              user.password!
-            ))
-          ) {
-            return null;
-          }
-          return user;
-        } catch (error) {
-          throw error;
+        if (!credentials.email || !credentials.password) return null;
+
+        const user = await prisma.user.findUnique({
+          where: { email: String(credentials.email) },
+        });
+
+        if (
+          !user ||
+          !(await comparePassword(String(credentials.password), user.password!))
+        ) {
+          return null;
         }
+
+        return user;
       },
     }),
   ],
@@ -63,23 +55,21 @@ export default {
       }
 
       if (isAuthRoute) {
-        if (isLoggedIn && auth.user.role && auth.user.role === "ADMIN") {
+        if (isLoggedIn && auth.user.role === "ADMIN") {
           return NextResponse.redirect(
             new URL(DEFAULT_ADMIN_SIGN_IN_REDIRECT, nextUrl)
           );
         }
-        if (isLoggedIn && auth.user.role && auth.user.role === "USER") {
+        if (isLoggedIn && auth.user.role === "USER") {
           return NextResponse.redirect(new URL("/", nextUrl));
         }
         return true;
       }
 
       if (!isPublicRoute) {
-        if (isLoggedIn && auth.user.role && auth.user.role !== "ADMIN") {
+        if (isLoggedIn && auth.user.role !== "ADMIN") {
           let callbackUrl = nextUrl.pathname;
-          if (nextUrl.search) {
-            callbackUrl += nextUrl.search;
-          }
+          if (nextUrl.search) callbackUrl += nextUrl.search;
           const encodedUrl = encodeURIComponent(callbackUrl);
           return NextResponse.redirect(
             new URL(`/feedback?callbackUrl=${encodedUrl}`, nextUrl)
@@ -97,7 +87,6 @@ export default {
     jwt: async ({ token, user }) => {
       if (user) {
         token.role = user.role;
-        return token;
       }
       return token;
     },
@@ -105,36 +94,27 @@ export default {
       if (token.sub && token.role) {
         session.user.id = token.sub;
         session.user.role = token.role as UserRole;
-        return session;
       }
       return session;
     },
     signIn: async ({ user, account }) => {
       if (account?.provider !== "credentials") return true;
 
-      if (user && user.id) {
-        const exitingUser = await prisma.user.findUnique({
-          where: {
-            id: user.id,
-          },
-        });
+      const existingUser = await prisma.user.findUnique({
+        where: { id: user.id },
+      });
 
-        if (!exitingUser?.emailVerified) {
-          return false;
-        }
-      }
-
-      return true;
+      return !!existingUser?.emailVerified;
     },
   },
   events: {
     linkAccount: async ({ user }) => {
       await prisma.user.update({
         where: { id: user.id },
-        data: {
-          emailVerified: new Date(),
-        },
+        data: { emailVerified: new Date() },
       });
     },
   },
-} satisfies NextAuthConfig;
+};
+
+export default authConfig;
