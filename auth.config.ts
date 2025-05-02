@@ -3,10 +3,10 @@ import Google from 'next-auth/providers/google';
 import Credentials from 'next-auth/providers/credentials';
 import type { NextAuthConfig } from 'next-auth';
 import { comparePassword } from './actions/hash-password';
-import { UserRole } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { DEFAULT_ADMIN_SIGN_IN_REDIRECT, apiAuthPrefix, authRoutes, publicRoutes } from '@/routes';
 import { NextResponse } from 'next/server';
+import { UserRole } from './lib/generated/prisma';
 
 export const authConfig = {
     providers: [
