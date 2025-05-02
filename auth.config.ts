@@ -6,7 +6,7 @@ import { comparePassword } from './actions/hash-password';
 import { prisma } from '@/lib/prisma';
 import { DEFAULT_ADMIN_SIGN_IN_REDIRECT, apiAuthPrefix, authRoutes, publicRoutes } from '@/routes';
 import { NextResponse } from 'next/server';
-import { UserRole } from './lib/generated/prisma';
+import { UserRole } from '@prisma/client';
 
 export const authConfig = {
     providers: [
