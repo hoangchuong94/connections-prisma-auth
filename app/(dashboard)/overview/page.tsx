@@ -1,14 +1,14 @@
-import React from "react";
-import { prisma } from "@/lib/prisma";
+'use server';
+
+import { getCategoriesByGenderId } from '@/actions/category';
 
 const OverviewPage = async () => {
-  const categories = await prisma.category.findMany();
-
-  return (
-    <div className="h-screen flex justify-center items-center">
-      <h1>{JSON.stringify(categories, null, 2)}</h1>
-    </div>
-  );
+    const ct = await getCategoriesByGenderId('cmaccdd1g0000k0169394f1db');
+    return (
+        <div>
+            <h2>{JSON.stringify(ct.data, null, 2)}</h2>
+        </div>
+    );
 };
 
 export default OverviewPage;

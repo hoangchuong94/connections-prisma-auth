@@ -1,48 +1,29 @@
-import type { Metadata } from "next";
-import { ModeToggle } from "@/components/mode-toggle";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import LoadingIndicator from "@/components/loading-indicator";
+import type { Metadata } from 'next';
+import Header from './_component/header';
+import { auth } from '@/auth/auth';
+import { Profile } from '@/types';
 
 export const metadata: Metadata = {
-  title: "Home Page",
-  description: "Home page by create next app",
+    title: 'Home Page',
+    description: 'Home page by create next app',
 };
 
-export default function RootLayout({
-  children,
+export default async function RootLayout({
+    children,
 }: Readonly<{
-  children: React.ReactNode;
+    children: React.ReactNode;
 }>) {
-  return (
-    <main className="min-h-screen grid grid-rows-[auto_1fr_auto]">
-      <header className="flex flex-row-reverse p-4">
-        <div className="flex justify-center items-center gap-2">
-          <ModeToggle />
-          <Button
-            className="cursor-pointer"
-            type="button"
-            variant="outline"
-            size="lg"
-          >
-            <Link href={"/sign-in"}>
-              Sign In <LoadingIndicator />
-            </Link>
-          </Button>
-          <Button
-            className="cursor-pointer"
-            type="button"
-            variant="ghost"
-            size="lg"
-          >
-            <Link href={"/sign-up"}>
-              Sign Up <LoadingIndicator />
-            </Link>
-          </Button>
+    const session = await auth();
+    const profile: Profile = {
+        username: session?.user.name || '',
+        email: session?.user.email || '',
+        avatar: 'https://github.com/shadcn.png',
+    };
+    return (
+        <div className="grid grid-rows-[auto_1fr_auto] p-2">
+            <Header profile={profile} />
+            <main>{children}</main>
+            <footer className="p-4">footer</footer>
         </div>
-      </header>
-      {children}
-      <footer className="p-4">footer</footer>
-    </main>
-  );
+    );
 }

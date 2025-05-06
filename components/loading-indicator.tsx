@@ -1,11 +1,10 @@
-"use client";
+'use client';
 
-import { useLinkStatus } from "next/link";
+import { Loader2 } from 'lucide-react';
+import { useLinkStatus } from 'next/link';
 
 export default function LoadingIndicator() {
-  const { pending } = useLinkStatus();
+    const { pending } = useLinkStatus();
 
-  return !pending ? (
-    <div role="status" aria-label="Loading" className="spinner" />
-  ) : null;
+    return !pending ? <Loader2 className="h-8 w-8 animate-spin" /> : null;
 }

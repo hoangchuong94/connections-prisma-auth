@@ -3,12 +3,12 @@ import { AuthError } from 'next-auth';
 import { redirect } from 'next/navigation';
 
 import { prisma } from '@/lib/prisma';
-import { signIn } from '@/auth';
+import { signIn } from '@/auth/auth';
 import { sendVerificationEmail } from '@/lib/mail';
 import { hashPassword } from '@/actions/hash-password';
 import { generateVerificationToken } from '@/lib/tokens';
 import { SignInSchema, SignUpSchema, type SignInSchemaType, type SignUpSchemaType } from '@/schema/auth';
-import { DEFAULT_ADMIN_SIGN_IN_REDIRECT } from '@/routes';
+import { DEFAULT_ADMIN_SIGN_IN_REDIRECT } from '@/constants/routes';
 
 export async function authenticate(values: SignInSchemaType) {
     let redirectTo = '';

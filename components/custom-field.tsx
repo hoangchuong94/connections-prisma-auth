@@ -3,8 +3,13 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { FieldValues, FieldPath, UseControllerProps, ControllerRenderProps } from 'react-hook-form';
+import { FieldValues, FieldPath, UseControllerProps, ControllerRenderProps, Path, PathValue } from 'react-hook-form';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
+
+import { UploadImage } from '@/components/uploader-image';
+import { UploadImages } from '@/components/uploader-images';
+import { PopoverCheckbox } from '@/components/popover-checkbox';
+import { PopoverSelect } from '@/components/popover-select';
 
 interface GenericFieldProps<TFieldValues extends FieldValues> {
     label?: string;
@@ -17,6 +22,30 @@ interface InputFieldProps<TFieldValues extends FieldValues> extends UseControlle
     label: string;
     placeholder: string;
     type?: string;
+    disabled?: boolean;
+}
+
+interface PopoverSelectFieldProps<TFieldValues extends FieldValues, TItem> extends UseControllerProps<TFieldValues> {
+    className?: string;
+    defaultLabel?: string;
+    defaultValue?: PathValue<TFieldValues, Path<TFieldValues>>;
+    label: string;
+    items: TItem[];
+    getItemKey: (item: TItem) => string;
+    getItemName: (item: TItem) => string;
+    disabled?: boolean;
+    description?: string;
+    createHref?: string;
+    updateHref?: string;
+    deleteHref?: string;
+}
+
+interface PopoverCheckboxFieldProps<TFieldValues extends FieldValues, TItem> extends UseControllerProps<TFieldValues> {
+    className?: string;
+    label: string;
+    items: TItem[];
+    getItemKey: (item: TItem) => string | number;
+    getItemName: (item: TItem) => string;
     disabled?: boolean;
 }
 
@@ -38,6 +67,18 @@ interface RadioGroupFieldProps<TFieldValues extends FieldValues, TItem> extends 
     className?: string;
 }
 
+interface ImageFieldProps<TFieldValues extends FieldValues> extends UseControllerProps<TFieldValues> {
+    className?: string;
+    label?: string;
+    setUrl: React.Dispatch<React.SetStateAction<string>>;
+}
+
+interface ImagesFieldProps<TFieldValues extends FieldValues> extends UseControllerProps<TFieldValues> {
+    className?: string;
+    label?: string;
+    setUrls: React.Dispatch<React.SetStateAction<string[]>>;
+}
+
 export const GenericField = <TFieldValues extends FieldValues>({
     label,
     description,
@@ -48,7 +89,7 @@ export const GenericField = <TFieldValues extends FieldValues>({
         control={fieldProps.control}
         name={fieldProps.name as FieldPath<TFieldValues>}
         render={({ field }) => (
-            <FormItem className="w-full">
+            <FormItem>
                 {label && <FormLabel>{label}</FormLabel>}
                 <FormControl>{renderInput(field)}</FormControl>
                 {description && <FormDescription>{description}</FormDescription>}
@@ -109,6 +150,128 @@ export const InputField = <TFieldValues extends FieldValues>({
             }
         },
         [type, className, placeholder, disabled],
+    );
+
+    return <GenericField label={label} {...fieldProps} renderInput={renderInput} />;
+};
+
+export const PopoverSelectField = <TFieldValues extends FieldValues, TItem>({
+    label,
+    defaultLabel,
+    createHref,
+    updateHref,
+    deleteHref,
+    items = [],
+    getItemKey,
+    getItemName,
+    disabled,
+    defaultValue,
+    description,
+    className,
+    ...fieldProps
+}: PopoverSelectFieldProps<TFieldValues, TItem>) => {
+    const memoizedGetItemName = useCallback((item: TItem) => getItemName(item), [getItemName]);
+
+    const renderInput = useCallback(
+        (field: ControllerRenderProps<TFieldValues>) => (
+            <PopoverSelect
+                className={className}
+                defaultLabel={defaultLabel}
+                createHref={createHref}
+                updateHref={updateHref}
+                deleteHref={deleteHref}
+                defaultValue={defaultValue}
+                items={items}
+                value={field.value}
+                getItemName={memoizedGetItemName}
+                getKey={getItemKey}
+                onChange={field.onChange}
+                disabled={disabled}
+            />
+        ),
+        [
+            className,
+            defaultLabel,
+            createHref,
+            updateHref,
+            deleteHref,
+            defaultValue,
+            items,
+            memoizedGetItemName,
+            getItemKey,
+            disabled,
+        ],
+    );
+
+    return <GenericField label={label} description={description} {...fieldProps} renderInput={renderInput} />;
+};
+
+export const PopoverCheckboxField = <TFieldValues extends FieldValues, TItem>({
+    className,
+    label,
+    items,
+    getItemKey,
+    getItemName,
+    disabled,
+    ...fieldProps
+}: PopoverCheckboxFieldProps<TFieldValues, TItem>) => {
+    const memoizedGetItemName = useCallback((item: TItem) => getItemName(item), [getItemName]);
+
+    const renderInput = useCallback(
+        (field: ControllerRenderProps<TFieldValues>) => (
+            <PopoverCheckbox
+                className={className}
+                items={items}
+                value={Array.isArray(field.value) ? field.value : []}
+                onChange={field.onChange}
+                getItemName={memoizedGetItemName}
+                getItemKey={getItemKey}
+                disabled={disabled}
+            />
+        ),
+        [items, className, memoizedGetItemName, getItemKey, disabled],
+    );
+
+    return <GenericField label={label} {...fieldProps} renderInput={renderInput} />;
+};
+
+export const ImageField = <TFieldValues extends FieldValues>({
+    label,
+    setUrl,
+    className,
+    ...fieldProps
+}: ImageFieldProps<TFieldValues>) => {
+    const renderInput = useCallback(
+        (field: ControllerRenderProps<TFieldValues>) => (
+            <UploadImage
+                initialFile={field.value as File | string}
+                onChange={field.onChange}
+                setUrl={setUrl}
+                className={className}
+            />
+        ),
+        [className, setUrl],
+    );
+
+    return <GenericField label={label} {...fieldProps} renderInput={renderInput} />;
+};
+
+export const ImagesField = <TFieldValues extends FieldValues>({
+    label,
+    setUrls,
+    className,
+    ...fieldProps
+}: ImagesFieldProps<TFieldValues>) => {
+    const renderInput = useCallback(
+        (field: ControllerRenderProps<TFieldValues>) => (
+            <UploadImages
+                setUrls={setUrls}
+                onChange={field.onChange}
+                initialFilesState={field.value}
+                className={className}
+            />
+        ),
+        [setUrls, className],
     );
 
     return <GenericField label={label} {...fieldProps} renderInput={renderInput} />;

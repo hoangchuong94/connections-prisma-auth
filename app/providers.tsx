@@ -1,19 +1,24 @@
-import { auth } from '@/auth';
+'use client';
+
 import { SessionProvider } from 'next-auth/react';
-import { ThemeProvider } from './theme-provider';
+import { ThemeProvider } from '@/app/theme-provider';
+import { EdgeStoreProvider } from '@/lib/edgestore';
+import { Provider as ReduxProvider } from 'react-redux';
+import { store } from '@/store';
+import { Toaster } from 'sonner';
+import { Session } from 'next-auth';
 
-import React from 'react';
-
-const Providers = async ({ children }: { children: React.ReactNode }) => {
-    const session = await auth();
-
+export default function Providers({ children, session }: { children: React.ReactNode; session: Session | null }) {
     return (
         <SessionProvider session={session}>
             <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-                {children}
+                <EdgeStoreProvider>
+                    <ReduxProvider store={store}>
+                        {children}
+                        <Toaster position="top-right" richColors closeButton />
+                    </ReduxProvider>
+                </EdgeStoreProvider>
             </ThemeProvider>
         </SessionProvider>
     );
-};
-
-export default Providers;
+}

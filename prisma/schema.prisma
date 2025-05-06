@@ -83,7 +83,7 @@ model Gender {
   createdAt  DateTime            @default(now()) @map("created_at")
   updatedAt  DateTime            @updatedAt @map("updated_at")
   deletedAt  DateTime?           @map("deleted_at")
-  categories CategoryGender[]
+  categories CategoryGender[]    @relation(name: "CategoryGender")
 
   @@map("genders")
 }
@@ -94,8 +94,8 @@ model CategoryGender {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
   deletedAt        DateTime?@map("deleted_at")
-  category    Category @relation(fields: [categoryId], references: [id])
-  gender      Gender   @relation(fields: [genderId], references: [id])
+  category    Category @relation(name: "CategoryGender",fields: [categoryId], references: [id])
+  gender      Gender   @relation(name: "CategoryGender", fields: [genderId], references: [id])
 
   @@id([categoryId, genderId])
   @@map("category_gender")
@@ -108,7 +108,7 @@ model Category {
   updatedAt         DateTime                  @updatedAt @map("updated_at")
   deletedAt         DateTime?                 @map("deleted_at")
   detailCategories  CategoryDetailCategory[]  @relation(name: "CategoryDetailCategory")
-  genders           CategoryGender[]
+  genders           CategoryGender[]          @relation(name: "CategoryGender")
 
   @@map("categories")
 }
@@ -130,7 +130,6 @@ model CategoryDetailCategory {
 model DetailCategory {
   id              String                     @id @default(cuid())
   name            String
-  categoryId      String                     @map("category_id")
   createdAt       DateTime                   @default(now()) @map("created_at")
   updatedAt       DateTime                   @updatedAt @map("updated_at")
   deletedAt       DateTime?                  @map("deleted_at")
