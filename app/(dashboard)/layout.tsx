@@ -6,17 +6,14 @@ import { Profile } from '@/types';
 import { Card } from '@/components/ui/card';
 
 import { auth } from '@/auth/auth';
+import { ReactNode } from 'react';
 
 export const metadata: Metadata = {
     title: 'Admin Dashboard',
     description: 'Admin Dashboard by create next app',
 };
 
-export default async function RootLayout({
-    children,
-}: Readonly<{
-    children: React.ReactNode;
-}>) {
+export default async function RootLayout({ children, modal }: { children: ReactNode; modal: ReactNode }) {
     const cookieStore = await cookies();
     const defaultOpen = cookieStore.get('sidebar_state')?.value === 'true';
     const session = await auth();
@@ -32,7 +29,10 @@ export default async function RootLayout({
             <DashboardSidebar profile={profile} />
             <SidebarInset className="max-h-screen bg-slate-200">
                 <Card className="scrollbar-thin custom-scrollbar bg-card text-card-foreground scrollbar-thumb-gray-400 scrollbar-track-gray-200 h-full max-h-screen overflow-hidden overflow-x-hidden overflow-y-auto scroll-smooth rounded-2xl p-2 shadow-md max-md:m-2 md:my-2 md:mr-2">
-                    {children}
+                    <>
+                        {children}
+                        {modal}
+                    </>
                 </Card>
             </SidebarInset>
         </SidebarProvider>

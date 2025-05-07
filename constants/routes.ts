@@ -6,9 +6,9 @@ export const apiAuthPrefix = '/api';
 
 export const DEFAULT_ADMIN_SIGN_IN_REDIRECT = '/overview';
 
-export const CREATE_GENDER = '/products/gender?action=create';
-export const UPDATE_GENDER = '/products/gender?action=update';
-export const DELETE_GENDER = '/products/gender?action=delete';
+export const CREATE_GENDER = '/gender?action=create';
+export const UPDATE_GENDER = '/gender?action=update';
+export const DELETE_GENDER = '/gender?action=delete';
 
 export const CREATE_CATEGORY = '/products/category?action=create';
 export const UPDATE_CATEGORY = '/products/category?action=update';

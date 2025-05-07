@@ -74,8 +74,7 @@ export default function GenderModal() {
         }
         if (result && result.success && result.data) {
             setSuccessMessage(result.message);
-            mutate('genders');
-            form.reset({ name: result.data?.name });
+            router.refresh();
         } else {
             setErrorMessage(result?.error || 'An unexpected error occurred.');
         }
@@ -89,7 +88,6 @@ export default function GenderModal() {
         const { error, success, message } = await deleteGender(genderId);
 
         if (success) {
-            mutate('genders');
             closeModal(false);
             toast.success(message);
         } else {

@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-
 import { Check, ChevronsUpDown, Plus, Trash, Pencil, Loader2 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -44,13 +43,12 @@ export const PopoverSelect = <T,>({
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
-    const searchString = searchParams?.toString();
+    const searchString = searchParams?.toString() || '';
 
     React.useEffect(() => {
-        if (isRedirecting) {
-            setIsRedirecting(false);
-        }
-    }, [isRedirecting, pathname, searchString]);
+        // Reset loading khi path hoặc search params thay đổi
+        setIsRedirecting(false);
+    }, [pathname, searchString]);
 
     const selected = React.useMemo(() => {
         const selectedItem = value ?? defaultValue;
@@ -73,6 +71,9 @@ export const PopoverSelect = <T,>({
     );
 
     const handleRedirect = (href: string) => {
+        const currentUrl = `${pathname}?${searchString}`;
+        if (href === currentUrl) return;
+
         setIsRedirecting(true);
         router.push(href);
     };

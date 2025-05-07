@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma';
 import { errorResponse, executeWithCatch, successResponse } from '@/lib/response-helpers';
 import { GenderModalSchema } from '@/schema/product';
+import { revalidatePath } from 'next/cache';
 
 // ─── Create Gender ─────────────────────────────────────────────────────
 export const createGender = async (value: unknown) => {
@@ -16,6 +17,7 @@ export const createGender = async (value: unknown) => {
 
         const existing = await prisma.gender.findFirst({
             where: { name: data.name, deletedAt: null },
+            orderBy: { createdAt: 'asc' },
         });
 
         if (existing) {
@@ -23,7 +25,7 @@ export const createGender = async (value: unknown) => {
         }
 
         const gender = await prisma.gender.create({ data });
-
+        revalidatePath('/');
         return successResponse(gender, 'Gender created successfully.');
     });
 };
@@ -108,6 +110,24 @@ export const getAllGenders = async () => {
         const genders = await prisma.gender.findMany({
             where: { deletedAt: null },
             orderBy: { createdAt: 'asc' },
+        });
+        return successResponse(genders, 'All genders fetched successfully.');
+    });
+};
+
+// ─── Get All Genders ───────────────────────────────────────────────────
+export const getAllGendersJoinCategory = async () => {
+    return executeWithCatch(async () => {
+        const genders = await prisma.gender.findMany({
+            where: { deletedAt: null },
+            orderBy: { createdAt: 'asc' },
+            include: {
+                categories: {
+                    include: {
+                        category: true,
+                    },
+                },
+            },
         });
         return successResponse(genders, 'All genders fetched successfully.');
     });
